@@ -155,45 +155,45 @@ const getBooksByAuthor = (author) => {
 
 
 // Task 4: Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+// Task 13: make it async using promises
+public_users.get('/title/:title', async function (req, res) {
 
-    // get all keys from book object
-    let all_keys = Object.keys(books);
+  // attempt to find books for this title
+  try {
+    const books_by_title = await getBooksByTitle(req.params.title)
+    return res.send(JSON.stringify(books_by_title, null, 4))
+  }
 
-    // set requested title
-    let requested_title = req.params.title;
-  
-    // create boolean to track if book was found
-    let is_found = false;
-  
-    // create a variable to track specific book
-    var specific_book;
-  
-    // iterate through all keys
-    for (key of all_keys) {
-  
-      // author for book associated with current key
-      let current_title = books[key]["title"];
-  
-      // check if requested author matches requested
-      if (requested_title === current_title) {
-        is_found = true;
-        specific_book = books[key];
-        break;
-      }
-    }
-  
-    // if book was found, return its information
-    if (is_found) {
-      res.send(JSON.stringify(specific_book, null, 4))
-    } 
-    
-    // otherwise return error
-    else {
-      return res.status(300).json({message: "Book not found"});
-    }
-
+  // unable to retrieve books for this title
+  catch (error) {
+    return res.status(500).json({message: "Unable to retrieve books"});
+  }
 });
+
+const getBooksByTitle = (title) => {
+  return new Promise(function(resolve, reject) {
+  
+    // set a 2 sec timeout
+    setTimeout(() => {
+
+      // create a list to store found books
+      let books_by_title = [];
+    
+      // iterate through all keys, if title matches, add to list of books
+      for (key of Object.keys(books)) {
+        if (title == books[key]["title"]) {
+          books_by_title.push({key: books[key]});
+        }
+      }
+
+      // resolve if at least one book was found, otherwise reject
+      books_by_title.length > 0
+        ? resolve(books_by_title)
+        : reject(new Error("Unable to retrieve book"))
+    }, 2000)
+  })
+}
+
 
 // Task 5: Get book review
 public_users.get('/review/:isbn', function (req, res) {
