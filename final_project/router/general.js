@@ -53,7 +53,7 @@ public_users.post("/register", (req, res) => {
 // Task 10: use async promise to get list of all books
 public_users.get('/', async function (req, res) {
 
-  // try to get list of all books
+  // try to get list of all books using helper function
   try {
 
     // call a helper function that gets list of all books
@@ -92,21 +92,46 @@ const getBooksList = () => {
 
 
 // Task 2: Get book details based on ISBN
-public_users.get('/isbn/:isbn', function (req, res) {
+// Task 11: make this asynchronous
+public_users.get('/isbn/:isbn', async function (req, res) {
 
-  // use isbn from req params to retrieve specific book
-  let specific_book = books[req.params.isbn]
+  try {
+    // call a helper function that gets specific book
+    const book = await getBookByISBN(req.params.isbn);
 
-  // if book isbn present, return book information
-  if (specific_book) { 
-    res.send(JSON.stringify(specific_book, null, 4))
+    // return the stringified book
+    return res.send(JSON.stringify(book, null, 4))
+  }
 
-  // if book isbn not present, return error message
-  } else {
+  // book was not retrieved
+  catch (error) {
     return res.status(300).json({message: "Book not found"});
   }
 });
-  
+
+
+// Task 11: define a helper function for getting book by ISBN
+const getBookByISBN = (isbn) => {
+
+  // define a new promise
+  outcome = new Promise(function(resolve, reject) {
+    
+    // set a 1 sec timeout
+    setTimeout(() => {
+      // set the book to return
+      let book = books[isbn];
+
+      // resolve if book is true
+      book
+        ? resolve(book)
+        : reject(new Error("Unable to retrieve book"))
+    }, 1000);
+  })
+
+  // return the outcome of the promise
+  return outcome
+}
+
 
 // Task 3: Get book details based on author
 public_users.get('/author/:author',function (req, res) {
@@ -207,5 +232,12 @@ public_users.get('/review/:isbn', function (req, res) {
     return res.status(300).json({message: "Book not found"});
   }
 });
+
+
+
+
+
+
+
 
 module.exports.general = public_users;
