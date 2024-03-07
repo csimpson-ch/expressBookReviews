@@ -50,16 +50,12 @@ public_users.post("/register", (req, res) => {
 
 
 // Task 1: Get the book list available in the shop
-// Task 10: use async promise to get list of all books
+// Task 10: make it async using promises
 public_users.get('/', async function (req, res) {
 
   // try to get list of all books using helper function
   try {
-
-    // call a helper function that gets list of all books
     const books = await getBooksList();
-
-    // JSON.stringify the list of all books
     res.send(JSON.stringify(books, null, 4))
   }
 
@@ -69,37 +65,28 @@ public_users.get('/', async function (req, res) {
   }
 });
 
-
-// Task 10: define a helper function for getting list of all books
 const getBooksList = () => {
-
-  // define a new promise
-  outcome = new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     
-    // we wait 1000 ms to get the list of all books
+    // set a 1 sec timeout
     setTimeout(() => {
       
-      // resolve if books is true, reject if books is false
+      // resolve if books is true, otherwise reject
       books
         ? resolve(books)
         : reject(new Error("Unable to retrieve all books"))
     }, 1000);
   })
-
-  // return the outcome of the promise
-  return outcome
 }
 
 
 // Task 2: Get book details based on ISBN
-// Task 11: make this asynchronous
+// Task 11: make it async using promises
 public_users.get('/isbn/:isbn', async function (req, res) {
 
+  // try to get a specific book using ISBN
   try {
-    // call a helper function that gets specific book
     const book = await getBookByISBN(req.params.isbn);
-
-    // return the stringified book
     return res.send(JSON.stringify(book, null, 4))
   }
 
@@ -109,66 +96,63 @@ public_users.get('/isbn/:isbn', async function (req, res) {
   }
 });
 
-
-// Task 11: define a helper function for getting book by ISBN
 const getBookByISBN = (isbn) => {
-
-  // define a new promise
-  outcome = new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     
     // set a 1 sec timeout
     setTimeout(() => {
       // set the book to return
       let book = books[isbn];
 
-      // resolve if book is true
+      // resolve if book is true, otherwise reject
       book
         ? resolve(book)
         : reject(new Error("Unable to retrieve book"))
     }, 1000);
   })
-
-  // return the outcome of the promise
-  return outcome
 }
 
 
 // Task 3: Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+// Task 12: make it async using promises
+public_users.get('/author/:author', async function (req, res) {
 
-  // get all keys from book object
-  let all_keys = Object.keys(books);
-
-  // set requested author
-  let requested_author = req.params.author;
-
-  // create boolean to track if book was found
-  let is_found = false;
-
-  // create a variable to track specific book
-  var specific_book;
-
-  // iterate through all keys
-  for (key of all_keys) {
-
-    // author for book associated with current key
-    let current_author = books[key]["author"];
-
-    // check if requested author matches requested
-    if (requested_author === current_author) {
-      is_found = true;
-      specific_book = books[key];
-      break;
-    }
+  // attempt to find books for this author
+  try {
+    const books_by_author = await getBooksByAuthor(req.params.author)
+    return res.send(JSON.stringify(books_by_author, null, 4))
   }
 
-  // if book was found, return its information, otherwise return error
-  if (is_found) {
-    res.send(JSON.stringify(specific_book, null, 4))
-  } else {
-    return res.status(300).json({message: "Book not found"});
+  // unable to retrieve books for this author
+  catch (error) {
+    return res.status(500).json({message: "Unable to retrieve books"});
   }
 });
+
+const getBooksByAuthor = (author) => {
+  return new Promise(function(resolve, reject) {
+    
+    // set a 2 sec timeout
+    setTimeout(() => {
+
+      // create initialised list of books
+      let books_by_author = []
+
+      // iterate through all keys, if author matches, add to set of books
+      for (key of Object.keys(books)) {
+        if (author == books[key]["author"]) {
+          books_by_author.push({key: books[key]});
+        }
+      }
+
+      // resolve if at least one book was found, otherwise reject
+      books_by_author.length > 0
+        ? resolve(books_by_author)
+        : reject(new Error("Unable to retrieve book"))
+    }, 2000)
+  })
+}
+
 
 // Task 4: Get all books based on title
 public_users.get('/title/:title',function (req, res) {
