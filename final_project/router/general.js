@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios').default;
 
 // get data on all books
 let books = require("./booksdb.js");
@@ -49,12 +50,45 @@ public_users.post("/register", (req, res) => {
 
 
 // Task 1: Get the book list available in the shop
-public_users.get('/', function (req, res) {
+// Task 10: use async promise to get list of all books
+public_users.get('/', async function (req, res) {
 
-  // JSON.stringify the list of all books
-  res.send(JSON.stringify(books, null, 4))
+  // try to get list of all books
+  try {
 
+    // call a helper function that gets list of all books
+    const books = await getBooksList();
+
+    // JSON.stringify the list of all books
+    res.send(JSON.stringify(books, null, 4))
+  }
+
+  // catch any errors in processing request
+  catch (error) {
+    res.send(500).json({message: "Unable to retrieve all books"})
+  }
 });
+
+
+// Task 10: define a helper function for getting list of all books
+const getBooksList = () => {
+
+  // define a new promise
+  outcome = new Promise(function(resolve, reject) {
+    
+    // we wait 1000 ms to get the list of all books
+    setTimeout(() => {
+      
+      // resolve if books is true, reject if books is false
+      books
+        ? resolve(books)
+        : reject(new Error("Unable to retrieve all books"))
+    }, 1000);
+  })
+
+  // return the outcome of the promise
+  return outcome
+}
 
 
 // Task 2: Get book details based on ISBN
@@ -140,10 +174,13 @@ public_users.get('/title/:title',function (req, res) {
       }
     }
   
-    // if book was found, return its information, otherwise return error
+    // if book was found, return its information
     if (is_found) {
       res.send(JSON.stringify(specific_book, null, 4))
-    } else {
+    } 
+    
+    // otherwise return error
+    else {
       return res.status(300).json({message: "Book not found"});
     }
 
